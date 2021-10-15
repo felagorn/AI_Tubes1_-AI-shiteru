@@ -1,5 +1,8 @@
 import random
 from time import time
+from model.board import Board
+from model.config import Config
+from model.piece import Piece
 
 from src.constant import ShapeConstant, ColorConstant, GameConstant
 from src.model import State
@@ -11,15 +14,95 @@ class Minimax:
     def __init__(self):
         pass
 
-    def eval(self, state: State):
-        return 1  # return format dictionary{move: ("col", "shape"), val: int}
+    def is_valid_position(self, board: Board, col: int):
+        return board[0][col].shape ==  ShapeConstant.BLANK
 
-    def findBlankRow(self, col: int):
+    def get_valid_positions(self, state: State):
+        valid_positions = []
+        for col in range(state.board.col):
+            if is_valid_position(state.board, col):
+                valid_positions.append(col)
+        return valid_positions
+
+    def findBlankRow(self, state: State, col: int):
         for row in range(state.board.row - 1, -1, -1):
             if state.board[row, col].shape == ShapeConstant.BLANK:
                 return row
 
         return -1
+
+    def vertical_streak(state: State):
+    # Asumsi: Pada board state belum ada yang menang
+
+        total_value = 0
+        for col in (state.board.col-1):
+            column_streak_counter = 0
+
+            if state.board.board[0][col].shape != ShapeConstant.BLANK:
+                col += 1
+            else:
+                
+                for player in (state.players):
+
+                    player_streak_counter = 0
+                    for prior in GameConstant.WIN_PRIOR:
+
+                        shape_streak_counter = 0
+                        color_streak_counter = 0
+
+                        row = 0
+                        switch = False
+                        while (row < state.board.row and not switch):
+                            pointer = row
+
+                            while state.board.board[pointer][col].shape == ShapeConstant.BLANK: # advancing BLANK
+                                    row += 1
+                                    pointer += 1
+                                    if row == state.board.row -1:
+                                        break
+                            
+                            if prior == GameConstant.WIN_PRIOR[0]: # streak berdasarkan SHAPE
+                                streak_shape = state.board[pointer+1][col].shape
+                                while (state.board.board[row][col].shape == streak_shape):
+                                    shape_streak_counter += 1
+                                    row += 1
+                                    if row == state.board.row -1:
+                                            break
+
+                            else: # streak berdasarkan COLOR
+                                streak_color = state.board[pointer+1][col].color
+                                while (state.board.board[row][col].color == streak_color):
+                                    color_streak_counter += 1
+                                    row += 1
+                                    if row == state.board.row -1:
+                                            break
+
+                            row += 1
+                        
+                    if shape_streak_counter >= color_streak_counter:
+                        player_streak_counter = shape_streak_counter
+                    else:
+                        player_streak_counter = color_streak_counter
+                if player == state.players[0]:
+                    column_streak_counter -= player_streak_counter * 100
+                else:
+                    column_streak_counter += player_streak_counter * 100
+                
+                total_value += column_streak_counter
+
+
+
+
+    def horizontal_streak(board: Board):
+
+
+    def count_streak(board: Board):
+
+    
+        
+
+    def eval(self, state: State):
+        return 1  # return format dictionary{move: ("col", "shape"), val: int}
 
     def minimax(self, state: State, n_player: int, thinking_time: float, depth: int, isMax: bool):
         score = eval(state)

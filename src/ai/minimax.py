@@ -23,6 +23,8 @@ class Minimax:
 
     def minimax(self, state: State, n_player: int, thinking_time: float, depth: int, isMax: bool):
         score = eval(state)
+
+        # Basis
         if depth == 0:  # If leaf node
             # return format dictionary{"move": ("col", "shape"), "val": int}
             return score
@@ -31,6 +33,7 @@ class Minimax:
             # return format dictionary{"move": ("col", "shape"), "val": int}
             return {"move": ("col", "shape"), "val": 0}
 
+        # Recursion
         if (isMax):  # Maximizer
             best = {"move": ("col", "shape"), "val": -999999}
 

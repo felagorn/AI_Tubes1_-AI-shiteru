@@ -35,47 +35,57 @@ class Minimax:
     # Asumsi: Pada board state belum ada yang menang
 
         total_value = 0
-        for col in (state.board.col-1):
+        for col in (state.board.col):
+        # Iterasi setiap kolom pada board
+            
             column_streak_counter = 0
 
             if state.board.board[0][col].shape != ShapeConstant.BLANK:
+            # Kolom sudah penuh sampai baris atas
                 col += 1
             else:
-                
+            # Kolom belum penuh
                 for player in (state.players):
+                # Iterasi untuk menghitung streak player pada kolom yang bersangkutan
 
                     player_streak_counter = 0
                     for prior in GameConstant.WIN_PRIOR:
-
+                    # Iterasi untuk menghitung streak berdasarkan SHAPE dan COLOR
                         shape_streak_counter = 0
                         color_streak_counter = 0
 
                         row = 0
-                        switch = False
-                        while (row < state.board.row and not switch):
-                            pointer = row
+                        while (row < state.board.row):
+                            pointer = row # pointer untuk menghitung indeks terakhir BLANK pada board
 
                             while state.board.board[pointer][col].shape == ShapeConstant.BLANK: # advancing BLANK
-                                    row += 1
-                                    pointer += 1
-                                    if row == state.board.row -1:
-                                        break
+                                row += 1
+                                pointer += 1
+                                if row > state.board.row - 1: # pointer sampai ke baris paling bawah -> kolom kosong
+                                    break
+                            
+                            if row > state.board.row - 1: # row sampai ke baris paling bawah -> kolom kosong
+                                break
+
+                            row += 1 # row tepat di bawah pointer BLANK terakhir
                             
                             if prior == GameConstant.WIN_PRIOR[0]: # streak berdasarkan SHAPE
-                                streak_shape = state.board[pointer+1][col].shape
+                                streak_shape = state.board.board[pointer+1][col].shape
                                 while (state.board.board[row][col].shape == streak_shape):
                                     shape_streak_counter += 1
+                                    
+                                    if row >= state.board.row:
+                                        break
                                     row += 1
-                                    if row == state.board.row -1:
-                                            break
 
                             else: # streak berdasarkan COLOR
-                                streak_color = state.board[pointer+1][col].color
+                                streak_color = state.board.board[pointer+1][col].color
                                 while (state.board.board[row][col].color == streak_color):
                                     color_streak_counter += 1
+
+                                    if row >= state.board.row:
+                                        break
                                     row += 1
-                                    if row == state.board.row -1:
-                                            break
 
                             row += 1
                         
@@ -84,13 +94,13 @@ class Minimax:
                     else:
                         player_streak_counter = color_streak_counter
                 if player == state.players[0]:
-                    column_streak_counter -= player_streak_counter * 100
-                else:
                     column_streak_counter += player_streak_counter * 100
+                else:
+                    column_streak_counter -= player_streak_counter * 100
                 
-                total_value += column_streak_counter
-
-
+            total_value += column_streak_counter
+            
+        return total_value
 
 
     def horizontal_streak(board: Board):

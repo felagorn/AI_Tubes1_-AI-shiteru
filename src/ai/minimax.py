@@ -45,65 +45,339 @@ class Minimax:
                 col += 1
             else:
             # Kolom belum penuh
-                for player in (state.players):
+                # for player in (state.players):
                 # Iterasi untuk menghitung streak player pada kolom yang bersangkutan
 
-                    player_streak_counter = 0
-                    for prior in GameConstant.WIN_PRIOR:
-                    # Iterasi untuk menghitung streak berdasarkan SHAPE dan COLOR
-                        shape_streak_counter = 0
-                        color_streak_counter = 0
+                # player_streak_counter = 0
+                # for prior in GameConstant.WIN_PRIOR:
+                # Iterasi untuk menghitung streak berdasarkan SHAPE dan COLOR
+                shape_streak_counter = 0
+                color_streak_counter = 0
 
-                        row = 0
-                        while (row < state.board.row):
-                            pointer = row # pointer untuk menghitung indeks terakhir BLANK pada board
+                row = 0
+                while (row < state.board.row):
+                    pointer = row # pointer untuk menghitung indeks terakhir BLANK pada board
 
-                            while state.board.board[pointer][col].shape == ShapeConstant.BLANK: # advancing BLANK
-                                row += 1
-                                pointer += 1
-                                if row > state.board.row - 1: # pointer sampai ke baris paling bawah -> kolom kosong
-                                    break
-                            
-                            if row > state.board.row - 1: # row sampai ke baris paling bawah -> kolom kosong
-                                break
+                    while state.board.board[pointer][col].shape == ShapeConstant.BLANK and row < state.board.row: # advancing BLANK
+                        # if : # pointer sampai ke baris paling bawah -> kolom kosong
+                        #     break
+                        row += 1
+                        pointer += 1
+                    
+                    if row >= state.board.row: # row sampai ke baris paling bawah -> kolom kosong
+                        break
 
-                            row += 1 # row tepat di bawah pointer BLANK terakhir
-                            
-                            if prior == GameConstant.WIN_PRIOR[0]: # streak berdasarkan SHAPE
-                                streak_shape = state.board.board[pointer+1][col].shape
-                                while (state.board.board[row][col].shape == streak_shape):
-                                    shape_streak_counter += 1
-                                    
-                                    if row >= state.board.row:
-                                        break
-                                    row += 1
+                    #row += 1 # row tepat di bawah pointer BLANK terakhir
+                    
+                    #if state.board.board[row][col].shape == GameConstant.WIN_PRIOR[0]: # streak berdasarkan SHAPE
+                    streak_shape = state.board.board[row][col].shape
+                    streak_color = state.board.board[row][col].color
 
-                            else: # streak berdasarkan COLOR
-                                streak_color = state.board.board[pointer+1][col].color
-                                while (state.board.board[row][col].color == streak_color):
-                                    color_streak_counter += 1
+                    while (state.board.board[row][col].shape == streak_shape and row < state.board.row):
+                        shape_streak_counter += 1
+                        row += 1
+                    
+                    row = 0
+                    while state.board.board[row][col].color == streak_color and row < state.board.row:
+                        color_streak_counter += 1
+                        row += 1
 
-                                    if row >= state.board.row:
-                                        break
-                                    row += 1
+                    if row >= state.board.row:
+                        break
 
-                            row += 1
-                        
-                    if shape_streak_counter >= color_streak_counter:
-                        player_streak_counter = shape_streak_counter
-                    else:
-                        player_streak_counter = color_streak_counter
-                if player == state.players[0]:
-                    column_streak_counter += player_streak_counter * 100
+                    # else: # streak berdasarkan COLOR
+                    # while (state.board.board[row][col].color == streak_color):
+                    #     color_streak_counter += 1
+
+                    #     if row >= state.board.row:
+                    #         break
+                    #     row += 1
+
+                    row += 1
+                    
+                if shape_streak_counter >= color_streak_counter:
+                    if streak_shape == state.players[0].shape:
+                        column_streak_counter += shape_streak_counter * 100
+                    elif streak_shape == state.players[1].shape:
+                        column_streak_counter -= shape_streak_counter * 100
+
                 else:
-                    column_streak_counter -= player_streak_counter * 100
+                    if streak_color == state.players[0].color:
+                        column_streak_counter += color_streak_counter * 100
+                    elif streak_color == state.players[1].color:
+                        column_streak_counter -= color_streak_counter * 100
+                #if player == state.players[0]:
+                #else:
                 
             total_value += column_streak_counter
-            
+
         return total_value
 
 
-    def horizontal_streak(board: Board):
+    def horizontal_streak(state: State):
+
+        shape_streak = 0
+        color_streak = 0
+
+        #for player in state.players:
+
+        #player_streak = 0
+
+        for prior in GameConstant.WIN_PRIOR:
+
+            if prior == GameConstant.WIN_PRIOR[0]: # streak berdasarkan SHAPE
+
+                # shape_streak = 0
+
+                for row in state.board.row:
+
+                    row_streak = 0
+
+                    col = 0
+                    while col < state.board.col:
+                        streak_count = 0
+                        while state.board.board[row][col].shape == ShapeConstant.BLANK and col < state.board.col: # advancing BLANK
+                            col += 1
+                            
+                        if col >= state.board.col: # baris kosong
+                            break
+
+                        streak_shape = state.board.board[row][col].shape
+                        streak_start_point = row
+                        while state.board.board[row][col].shape == streak_shape and col < state.board.col:
+                            streak_count += 1
+
+                            col += 1
+                        streak_end_point = row
+
+                        if streak_shape == state.players[0].shape:
+                            utility_factor = 1
+                        elif streak_shape == state.players[1].shape:
+                            utility_factor = -1
+
+                        if streak_count == 4:
+                            row_streak += 1000000 * utility_factor
+                        elif streak_count == 3:
+                            if streak_start_point - 1 >= 0 and streak_end_point + 1 < state.board.col:
+                            # kedua titik samping ujung streak berada di dalam board
+                                if  row == findBlankRow(state, streak_start_point-1) and row == findBlankRow(state, streak_end_point+1):
+                                # kedua titik samping ujung streak kosong
+                                    row_streak += 20000 * utility_factor
+                                elif row == findBlankRow(state, streak_start_point-1):
+                                # hanya titik samping ujung kiri streak saja yang kosong
+                                    row_streak += 10000 * utility_factor
+                                elif row == findBlankRow(state, streak_end_point+1):
+                                # hanya titik samping ujung kanan streak saja yang kosong
+                                    row_streak += 10000 * utility_factor
+                            if streak_start_point - 1 >= 0:
+                            # hanya titik samping ujung kiri streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_start_point - 1):
+                                    row_streak += 10000 * utility_factor
+                            if streak_end_point + 1 < state.board.col:
+                            # hanya titik samping ujung kanan streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_end_point + 1):
+                                    row_streak += 10000 * utility_factor
+                        elif streak_count == 2:
+                            if streak_start_point - 1 >= 0 and streak_end_point + 1 < state.board.col:
+                            # kedua titik samping ujung streak berada di dalam board
+                                if  row == findBlankRow(state, streak_start_point-1) and row == findBlankRow(state, streak_end_point+1):
+                                # kedua titik samping ujung streak kosong
+                                    row_streak += 2000 * utility_factor
+                                elif row == findBlankRow(state, streak_start_point-1):
+                                # hanya titik samping ujung kiri streak saja yang kosong
+                                    row_streak += 1000 * utility_factor
+                                elif row == findBlankRow(state, streak_end_point+1):
+                                # hanya titik samping ujung kanan streak saja yang kosong
+                                    row_streak += 1000 * utility_factor
+                            if streak_start_point - 1 >= 0:
+                            # hanya titik samping ujung kiri streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_start_point - 1):
+                                    row_streak += 1000 * utility_factor
+                            if streak_end_point + 1 < state.board.col:
+                            # hanya titik samping ujung kanan streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_end_point + 1):
+                                    row_streak += 1000 * utility_factor
+                        elif streak_count == 1:
+                            if streak_start_point - 1 >= 0 and streak_end_point + 1 < state.board.col:
+                            # kedua titik samping ujung streak berada di dalam board
+                                if  row == findBlankRow(state, streak_start_point-1) and row == findBlankRow(state, streak_end_point+1):
+                                # kedua titik samping ujung streak kosong
+                                    row_streak += 200 * utility_factor
+                                elif row == findBlankRow(state, streak_start_point-1):
+                                # hanya titik samping ujung kiri streak saja yang kosong
+                                    row_streak += 100 * utility_factor
+                                elif row == findBlankRow(state, streak_end_point+1):
+                                # hanya titik samping ujung kanan streak saja yang kosong
+                                    row_streak += 100 * utility_factor
+                            if streak_start_point - 1 >= 0:
+                            # hanya titik samping ujung kiri streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_start_point - 1):
+                                    row_streak += 100 * utility_factor
+                            if streak_end_point + 1 < state.board.col:
+                            # hanya titik samping ujung kanan streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_end_point + 1):
+                                    row_streak += 100 * utility_factor
+
+                        if col >= state.board.col: # udah sampai kolom akhir dari baris yang bersangkutan
+                            break
+
+                        #col += 1
+                    
+                    shape_streak += row_streak
+
+            elif prior == GameConstant.WIN_PRIOR[1]: # streak berdasarkan COLOR
+
+                # color_streak = 0
+
+                for row in state.board.row:
+
+                    row_streak = 0
+
+                    col = 0
+                    while col < state.board.col:
+                        streak_count = 0
+                        while state.board.board[row][col].shape == ShapeConstant.BLANK and col < state.board.col: # advancing BLANK
+                            col += 1
+                            
+                        if col >= state.board.col: # baris kosong
+                            break
+
+                        streak_color = state.board.board[row][col].color
+                        streak_start_point = row
+                        while state.board.board[row][col].color == streak_color and col < state.board.col:
+                            streak_count += 1
+
+                            col += 1
+                        streak_end_point = row
+
+                        if streak_color == state.players[0].color:
+                            utility_factor = 1
+                        elif streak_color == state.players[1].color:
+                            utility_factor = -1
+
+                        if streak_count == 4:
+                            row_streak += 1000000 * utility_factor
+                        elif streak_count == 3:
+                            if streak_start_point - 1 >= 0 and streak_end_point + 1 < state.board.col:
+                            # kedua titik samping ujung streak berada di dalam board
+                                if  row == findBlankRow(state, streak_start_point-1) and row == findBlankRow(state, streak_end_point+1):
+                                # kedua titik samping ujung streak kosong
+                                    row_streak += 20000 * utility_factor
+                                elif row == findBlankRow(state, streak_start_point-1):
+                                # hanya titik samping ujung kiri streak saja yang kosong
+                                    row_streak += 10000 * utility_factor
+                                elif row == findBlankRow(state, streak_end_point+1):
+                                # hanya titik samping ujung kanan streak saja yang kosong
+                                    row_streak += 10000 * utility_factor
+                            if streak_start_point - 1 >= 0:
+                            # hanya titik samping ujung kiri streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_start_point - 1):
+                                    row_streak += 10000 * utility_factor
+                            if streak_end_point + 1 < state.board.col:
+                            # hanya titik samping ujung kanan streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_end_point + 1):
+                                    row_streak += 10000 * utility_factor
+                        elif streak_count == 2:
+                            if streak_start_point - 1 >= 0 and streak_end_point + 1 < state.board.col:
+                            # kedua titik samping ujung streak berada di dalam board
+                                if  row == findBlankRow(state, streak_start_point-1) and row == findBlankRow(state, streak_end_point+1):
+                                # kedua titik samping ujung streak kosong
+                                    row_streak += 2000 * utility_factor
+                                elif row == findBlankRow(state, streak_start_point-1):
+                                # hanya titik samping ujung kiri streak saja yang kosong
+                                    row_streak += 1000 * utility_factor
+                                elif row == findBlankRow(state, streak_end_point+1):
+                                # hanya titik samping ujung kanan streak saja yang kosong
+                                    row_streak += 1000 * utility_factor
+                            if streak_start_point - 1 >= 0:
+                            # hanya titik samping ujung kiri streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_start_point - 1):
+                                    row_streak += 1000 * utility_factor
+                            if streak_end_point + 1 < state.board.col:
+                            # hanya titik samping ujung kanan streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_end_point + 1):
+                                    row_streak += 1000 * utility_factor
+                        elif streak_count == 1:
+                            if streak_start_point - 1 >= 0 and streak_end_point + 1 < state.board.col:
+                            # kedua titik samping ujung streak berada di dalam board
+                                if  row == findBlankRow(state, streak_start_point-1) and row == findBlankRow(state, streak_end_point+1):
+                                # kedua titik samping ujung streak kosong
+                                    row_streak += 200 * utility_factor
+                                elif row == findBlankRow(state, streak_start_point-1):
+                                # hanya titik samping ujung kiri streak saja yang kosong
+                                    row_streak += 100 * utility_factor
+                                elif row == findBlankRow(state, streak_end_point+1):
+                                # hanya titik samping ujung kanan streak saja yang kosong
+                                    row_streak += 100 * utility_factor
+                            if streak_start_point - 1 >= 0:
+                            # hanya titik samping ujung kiri streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_start_point - 1):
+                                    row_streak += 100 * utility_factor
+                            if streak_end_point + 1 < state.board.col:
+                            # hanya titik samping ujung kanan streak saja yang berada di dalam board
+                                if row == findBlankRow(state, streak_end_point + 1):
+                                    row_streak += 100 * utility_factor
+
+                        if col >= state.board.col: # udah sampai kolom akhir dari baris yang bersangkutan
+                            break
+
+                        #col += 1
+                    
+                    color_streak += row_streak
+
+        if shape_streak >= color_streak:
+            return shape_streak
+        else:
+            return color_streak
+
+        # for row in state.board.row:
+            
+        #     row_streak_counter = 0
+
+        #     # Harus simpen indeks kolom streak awal dan akhir
+
+        #     # for player in state.players:
+        #     col = 0
+        #     while col < state.board.col:
+                
+        #         shape_streak_counter = 0
+        #         color_streak_counter = 0
+
+        #         while state.board.board[row][col].shape == ShapeConstant.BLANK and col < state.board.col: # Advancing BLANK
+        #             col += 1
+
+        #         if col == state.board.col: # Udah sampe kolom terakhir baris -> kolom dari baris BLANK semua
+        #             break
+
+        #         streak_shape = state.board.board[row][col].shape
+        #         streak_color = state.board.board[row][col].color
+
+        #         if streak_shape == state.players[0].shape
+
+        #         prior_point = col - 1
+        #         while state.board.board[row][col].shape == streak_shape and col < state.board.col:
+        #             shape_streak_counter += 1
+        #             col += 1
+        #         next_point = col + 1
+
+        #         prior_is_blank = state.board.board[row][prior_point].shape == ShapeConstant.BLANK
+        #         next_is_blank = state.board.board[row][next_point] == ShapeConstant.BLANK
+        #         if  prior_is_blank or next_is_blank:
+        #             if streak_shape
+        #             row_streak_counter += 
+
+                
+        #         if col >= state.board.col:
+        #             break
+
+        #         col += 1
+
+
+            
+        #     total_value = 
+                
+
+
 
 
     def count_streak(board: Board):

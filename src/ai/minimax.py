@@ -385,151 +385,177 @@ class Minimax:
     
         
 
-    def eval(self, state: State):
-        return 1  # return format dictionary{move: ("col", "shape"), val: int}
+    def eval(self, state: State, n_player:int):
+        return self.horizontal_streak(state)+self.vertical_streak(state)
 
-    def minimax(self, state: State, n_player: int, thinking_time: float, depth: int, isMax: bool):
+    def minimax(self, state: State, n_player: int, thinking_time: float, depth: int, isMax: bool,alpha:int,beta:int):
         score = eval(state)
 
         # Basis
-        if depth == 0:  # If leaf node
-            # return format dictionary{"move": ("col", "shape"), "val": int}
-            return score
-
         if is_full(state.board):  # If terminal
             # return format dictionary{"move": ("col", "shape"), "val": int}
             return {"move": ("col", "shape"), "val": 0}
+
+        winner = is_win(state.board)
+        if depth == 0 or winner:  # If leaf node
+            # return format dictionary{"move": ("col", "shape"), "val": int}
+            if winner:  
+                if winner[0] ==  state.players[n_player].shape and winner[1] ==  state.players[n_player].color:
+                    return {"move": ("col", "shape"), "val": 999999}
+                else :
+                    return {"move": ("col", "shape"), "val": -999999}
+            else :
+                return {"move": ("col", "shape"), "val": score}
+
+        
 
         # Recursion
         if (isMax):  # Maximizer
             best = {"move": ("col", "shape"), "val": -999999}
 
             # traverse movement
-            for i in range(state.board.col):
-                for j in range(2):
-                    if findBlankRow(i) != -1:
-                        if j % 2 == 0:  # Cross Shape
-                            if state.players[n_player].quota[ShapeConstant.CROSS] != 0:
-                                # Make the move
-                                piece = Piece(
-                                    ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[n_player])
-                                emptyRow = findBlankRow(i)
-                                state.board.set_piece(
-                                    emptyRow, i, piece)
+            for i in range(state.board.col*2):
+                
+                emptyRow = findBlankRow(i)
+                if emptyRow(i) != -1:
+                    if i <state.board.col:  # Cross Shape
+                        if state.players[n_player].quota[ShapeConstant.CROSS] != 0:
+                            # Make the move
+                            piece = Piece(
+                                ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[n_player])
+                            
+                            state.board.set_piece(
+                                emptyRow, i, piece)
 
-                                state.players[n_player].quota[shape] -= 1
+                            state.players[n_player].quota[shape] -= 1
 
-                                # Recursive call
-                                alt = minimax(state, (n_player+1) % 2,
-                                              thinking_time, depth - 1,
-                                              not isMax)
-                                if alt["val"] > best["val"]:
-                                    best["val"] = alt["val"]
-                                    best["move"] = (i, ShapeConstant.CROSS)
+                            # Recursive call
+                            alt = minimax(state, (n_player+1) % 2,
+                                            thinking_time, depth - 1,
+                                            not isMax, alpha,beta)
+                            if alt["val"] > best["val"]:
+                                best["val"] = alt["val"]
+                                best["move"] = (i, ShapeConstant.CROSS)
 
-                                # Erase Move
-                                state.players[n_player].quota[shape] += 1
+                            alpha = max(alpha, best["val"])
+                            if alpha >= beta:
+                                break
 
-                                blankPiece = Piece(
-                                    ShapeConstant.BLANK, ColorConstant.BLACK)
-                                state.board.set_piece(
-                                    emptyRow, i, blankPiece)
+                            # Erase Move
+                            state.players[n_player].quota[shape] += 1
 
-                        else:  # Circle Shape
-                            if state.players[n_player].quota[ShapeConstant.CIRCLE] != 0:
-                                # Make the move
-                                piece = Piece(
-                                    ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[n_player])
+                            blankPiece = Piece(
+                                ShapeConstant.BLANK, ColorConstant.BLACK)
+                            state.board.set_piece(
+                                emptyRow, i, blankPiece)
 
-                                emptyRow = findBlankRow(i)
-                                state.board.set_piece(
-                                    emptyRow, i, piece)
+                    else:  # Circle Shape
+                        if state.players[n_player].quota[ShapeConstant.CIRCLE] != 0:
+                            # Make the move
+                            piece = Piece(
+                                ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[n_player])
 
-                                state.players[n_player].quota[shape] -= 1
+                        
+                            state.board.set_piece(
+                                emptyRow, i % state.board.col, piece)
 
-                                # Recursive call
-                                alt = minimax(state, (n_player+1) % 2,
-                                              thinking_time, depth - 1,
-                                              not isMax)
-                                if alt["val"] > best["val"]:
-                                    best["val"] = alt["val"]
-                                    best["move"] = (i, ShapeConstant.CIRCLE)
+                            state.players[n_player].quota[shape] -= 1
 
-                                # Erase Move
-                                state.players[n_player].quota[shape] += 1
+                            # Recursive call
+                            alt = minimax(state, (n_player+1) % 2,
+                                            thinking_time, depth - 1,
+                                            not isMax,alpha,beta)
+                            if alt["val"] > best["val"]:
+                                best["val"] = alt["val"]
+                                best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
 
-                                blankPiece = Piece(
-                                    ShapeConstant.BLANK, ColorConstant.BLACK)
-                                state.board.set_piece(
-                                    emptyRow, i, blankPiece)
-            return best
+                            alpha = max(alpha, best["val"])
+                            if alpha >= beta:
+                                break
+
+                            # Erase Move
+                            state.players[n_player].quota[shape] += 1
+
+                            blankPiece = Piece(
+                                ShapeConstant.BLANK, ColorConstant.BLACK)
+                            state.board.set_piece(
+                                emptyRow, i % state.board.col, blankPiece)
+            return best 
         else:  # Minimizer
             best = {move: ("col", "shape"), val: 999999}
             # traverse movement
-            for i in range(state.board.col):
-                for j in range(2):
-                    if findBlankRow(i) != -1:
-                        if j % 2 == 0:  # Cross Shape
-                            if state.players[n_player].quota[ShapeConstant.CROSS] != 0:
-                                # Make the move
-                                piece = Piece(
-                                    ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[n_player])
+            for i in range(state.board.col * 2):
+                emptyRow = findBlankRow(i)
+                if emptyRow != -1:
+                    if i <state.board.col:  # Cross Shape
+                        if state.players[(n_player+1) % 2].quota[ShapeConstant.CROSS] != 0:
+                            # Make the move
+                            piece = Piece(
+                                ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[(n_player+1) % 2])
 
-                                emptyRow = findBlankRow(i)
-                                state.board.set_piece(
-                                    emptyRow, i, piece)
+                            
+                            state.board.set_piece(
+                                emptyRow, i, piece)
 
-                                state.players[n_player].quota[shape] -= 1
+                            state.players[(n_player+1) % 2].quota[shape] -= 1
 
-                                # Recursive call
-                                alt = minimax(state, (n_player+1) % 2,
-                                              thinking_time, depth - 1,
-                                              not isMax)
-                                if alt["val"] < best["val"]:
-                                    best["val"] = alt["val"]
-                                    best["move"] = (i, ShapeConstant.CROSS)
+                            # Recursive call
+                            alt = minimax(state, (n_player+1) % 2,
+                                            thinking_time, depth - 1,
+                                            not isMax,alpha,beta)
+                            if alt["val"] < best["val"]:
+                                best["val"] = alt["val"]
+                                best["move"] = (i, ShapeConstant.CROSS)
 
-                                # Erase Move
-                                state.players[n_player].quota[shape] += 1
+                            beta = min(beta, best["val"])
+                            if alpha >= beta:
+                                break
+                            # Erase Move
+                            state.players[(n_player+1) % 2].quota[shape] += 1
 
-                                blankPiece = Piece(
-                                    ShapeConstant.BLANK, ColorConstant.BLACK)
-                                state.board.set_piece(
-                                    emptyRow, i, blankPiece)
+                            blankPiece = Piece(
+                                ShapeConstant.BLANK, ColorConstant.BLACK)
+                            state.board.set_piece(
+                                emptyRow, i, blankPiece)
 
-                        else:  # Circle Shape
-                            if state.players[n_player].quota[ShapeConstant.CIRCLE] != 0:
-                                # Make the move
-                                piece = Piece(
-                                    ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[n_player])
+                    else:  # Circle Shape
+                        if state.players[(n_player+1) % 2].quota[ShapeConstant.CIRCLE] != 0:
+                            # Make the move
+                            piece = Piece(
+                                ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[(n_player+1) % 2])
 
-                                emptyRow = findBlankRow(i)
-                                state.board.set_piece(
-                                    emptyRow, i, piece)
+                            
+                            state.board.set_piece(
+                                emptyRow, i % state.board.col, piece)
 
-                                state.players[n_player].quota[shape] -= 1
+                            state.players[(n_player+1) % 2].quota[shape] -= 1
 
-                                # Recursive call
-                                alt = minimax(state, (n_player+1) % 2,
-                                              thinking_time, depth - 1,
-                                              not isMax)
-                                if alt["val"] < best["val"]:
-                                    best["val"] = alt["val"]
-                                    best["move"] = (i, ShapeConstant.CIRCLE)
+                            # Recursive call
+                            alt = minimax(state, (n_player+1) % 2,
+                                            thinking_time, depth - 1,
+                                            not isMax,alpha,beta)
+                            if alt["val"] < best["val"]:
+                                best["val"] = alt["val"]
+                                best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
+                            
+                            beta = min(beta, best["val"])
+                            if alpha >= beta:
+                                break
 
-                                # Erase Move
-                                state.players[n_player].quota[shape] += 1
+                            # Erase Move
+                            state.players[(n_player+1) % 2].quota[shape] += 1
 
-                                blankPiece = Piece(
-                                    ShapeConstant.BLANK, ColorConstant.BLACK)
-                                state.board.set_piece(
-                                    emptyRow, i, blankPiece)
+                            blankPiece = Piece(
+                                ShapeConstant.BLANK, ColorConstant.BLACK)
+                            state.board.set_piece(
+                                emptyRow, i % state.board.col, blankPiece)
 
             return best
 
     def find(self, state: State, n_player: int, thinking_time: float) -> Tuple[str, str]:
         self.thinking_time = time() + thinking_time
 
+        value = minimax(state, n_player, thinking_time, 5, True,-999999,999999)
         best_movement = (random.randint(0, state.board.col), random.choice(
             [ShapeConstant.CROSS, ShapeConstant.CIRCLE]))  # minimax algorithm
 

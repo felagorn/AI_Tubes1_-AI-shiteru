@@ -14,16 +14,7 @@ class Minimax:
     def __init__(self):
         pass
 
-    def is_valid_position(self, board: Board, col: int):
-        return board[0][col].shape ==  ShapeConstant.BLANK
-
-    def get_valid_positions(self, state: State):
-        valid_positions = []
-        for col in range(state.board.col):
-            if is_valid_position(state.board, col):
-                valid_positions.append(col)
-        return valid_positions
-
+    
     def findBlankRow(self, state: State, col: int):
         for row in range(state.board.row - 1, -1, -1):
             if state.board.board[row][col].shape == ShapeConstant.BLANK:
@@ -36,7 +27,7 @@ class Minimax:
 
         return self.counter(state, n_player, boardCopy)
 
-    def vertical_sreak(self, state: State, n_player: int):
+    def vertical_streak(self, state: State, n_player: int):
         boardCopy = [[0 for i in range(state.board.row)] for j in range(state.board.col)]
 
         for i in range(state.board.col):
@@ -285,13 +276,51 @@ class Minimax:
         + Enemy2StreakCounterSingleSide
         + Enemy2StreakCounterDoubleSide * 2) 
         return total_score
+    
+    ''' Heuristik 1: Yellow Tile '''
+    def __yellow_tile_heuristic(self,state:State,n_player:int):
+        # Heuristik kecil yang mendefinisikan tile yang lebih dominan
+        h1 = 0
+        c1 = 1
+        for r in range(state.board.row):
+            for c in range(state.board.col):
+                current_piece = state.board.__getitem__(pos=(r,c))
+                if  ((c == 3) or (r == 2) or (r == 3)) and (current_piece.shape != ShapeConstant.BLANK):
+                    # Shape more dominant
+                    if (current_piece.shape == state.players[n_player].shape):
+                        h1 += 1.01
+                    else:
+                        h1 -= 1.01
+                    # Color less dominant
+                    if (current_piece.color == state.players[n_player].color):
+                        h1 += 1
+                    else:
+                        h1 -= 1
+        return c1 * h1
+
+    ''' Heuristik 3: Shape '''
+    def __shape_heuristic(self,state:State,n_player:int):
+        # Heuristik keciiiiil yang membuat bot tidak menyimpan bidak shape lawan 
+        h3 = 0
+        c3 = 0.5
+        for shape in state.players[n_player].quota:
+            if shape == state.players[n_player].shape:
+                h3 += state.players[n_player].quota[shape]
+            else:
+                h3 -= state.players[n_player].quota[shape]
+        return c3 * h3
 
     def eval(self, state: State, n_player:int):
-        return self.vertical_sreak(state, n_player) + self.horizontal_streak(state, n_player) + self.diagonalLTR_Streak(state, n_player) + self.diagonalRTL_Streak(state, n_player)
+        return self.vertical_streak(state, n_player) 
+        + self.horizontal_streak(state, n_player) 
+        + self.diagonalLTR_Streak(state, n_player) 
+        + self.diagonalRTL_Streak(state, n_player)
+        + self.__yellow_tile_heuristic(state, n_player)
+        + self.__shape_heuristic(state, n_player)
 
     def minimax(self, state: State, init_player: int, n_player: int, thinking_time: float, init_time:float, depth: int, isMax: bool,alpha:int,beta:int):
-        score = self.eval(state,n_player)
-
+        score = self.eval(state,init_player)
+        
         # Basis
         if time() >= init_time + thinking_time - 0.5:
             if is_full(state.board):  # If terminal

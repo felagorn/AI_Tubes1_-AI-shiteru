@@ -14,20 +14,19 @@ import math
 # 3. Tidak lagi memakai best_movement
 # 4. Nama method diubah dari __local_search -> local_search
 
-class Heuristic:
+class HeuristicGroup20:
 
-    def __init__(self, board: Board, player: Player):
+    def __init__(self, board: Board, player: Player, enemy: Player):
         self.board = board
         self.player = player
+        self.enemy = enemy
 
     ''' Meng-output nilai fungsi objektif '''
     def calculate_heuristic(self) -> float:
-        
         h1 = self.__yellow_tile_heuristic()
+        h2 = self.__streak_heuristic()
         h3 = self.__shape_heuristic()
-        # print("h1 = "+ str(h1))
-        # print("h3 = " + str(h3))
-        return h1 + h3
+        return h1 + h2 + h3
 
     ''' Heuristik 1: Yellow Tile '''
     def __yellow_tile_heuristic(self):
@@ -51,6 +50,7 @@ class Heuristic:
         return c1 * h1
 
     ''' Heuristik 3: Shape '''
+    
     def __shape_heuristic(self):
         # Heuristik keciiiiil yang membuat bot tidak menyimpan bidak shape lawan 
         h3 = 0
@@ -61,8 +61,260 @@ class Heuristic:
             else:
                 h3 -= self.player.quota[shape]
         return c3 * h3
+    
+    ''' Heuristik 2: Streak '''
 
-class LSBot:
+    def __streak_heuristic(self):
+        return self.__vertical_streak() + self.__horizontal_streak() + self.__diagonalLTR_streak() + self.__diagonalRTL_streak()
+
+    def __counter(self, boardCopy):
+        # Inisialisasi Counter
+        Player3StreakCounterSingleSide = 0
+        Player3StreakCounterDoubleSide = 0
+        Player2StreakCounterSingleSide = 0
+        Player2StreakCounterDoubleSide = 0
+
+        Enemy3StreakCounterSingleSide = 0
+        Enemy3StreakCounterDoubleSide = 0
+        Enemy2StreakCounterSingleSide = 0
+        Enemy2StreakCounterDoubleSide = 0
+
+        # Counting Shape
+        for i in range(len(boardCopy)):
+            j=0
+            while j < len(boardCopy[i]):
+                # While Blank
+                if boardCopy[i][j].shape == ShapeConstant.BLANK:
+                    while boardCopy[i][j].shape == ShapeConstant.BLANK:
+                        j +=1
+                        if j >= len(boardCopy[i]):
+                            break
+
+                # if J over Board
+                if j >= len(boardCopy[i]):
+                    break
+
+                # Player Shape Counter
+                elif boardCopy[i][j].shape == self.player.shape and self.player.quota[self.player.shape] > 0  :
+                    StartPointer = j
+                    Counter = 0
+                    
+                    while boardCopy[i][j].shape == self.player.shape:
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+                    
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player2StreakCounterDoubleSide += 1
+                            else :
+                                Player2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player3StreakCounterDoubleSide += 1
+                            else :
+                                Player3StreakCounterSingleSide += 1
+                                        
+                # Enemy Shape
+                elif boardCopy[i][j].shape == self.enemy.shape and self.enemy.quota[self.enemy.shape] > 0  :
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].shape == self.enemy.shape   :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy2StreakCounterDoubleSide += 1
+                            else :
+                                Enemy2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy3StreakCounterDoubleSide += 1
+                            else :
+                                Enemy3StreakCounterSingleSide += 1
+
+                else:
+                    j += 1
+               
+        # Counting Colors
+        for i in range(len(boardCopy)):
+            j=0
+            while j < len(boardCopy[i]):
+                # While Blank
+                if boardCopy[i][j].shape == ShapeConstant.BLANK:
+                    while boardCopy[i][j].shape == ShapeConstant.BLANK:
+                        j +=1
+                        if j >= len(boardCopy[i]):
+                            break
+
+                # if j overboard        
+                if j >= len(boardCopy[i]):
+                        break   
+               
+                # Player Color Counter  
+                elif boardCopy[i][j].color==self.player.color:
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].color==self.player.color  :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player2StreakCounterDoubleSide += 1
+                            else :
+                                Player2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player3StreakCounterDoubleSide += 1
+                            else :
+                                Player3StreakCounterSingleSide += 1
+                
+
+                # Enemy Color   
+                elif boardCopy[i][j].color==self.enemy.color:
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].color==self.enemy.color  :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy2StreakCounterDoubleSide += 1
+                            else :
+                                Enemy2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy3StreakCounterDoubleSide += 1
+                            else :
+                                Enemy3StreakCounterSingleSide += 1
+                else:
+                    j += 1
+
+        total_score = (Player3StreakCounterSingleSide * 3
+        + Player3StreakCounterDoubleSide * 10000
+        + Player2StreakCounterSingleSide 
+        + Player2StreakCounterDoubleSide * 2) 
+        - (Enemy3StreakCounterSingleSide * 3
+        + Enemy3StreakCounterDoubleSide * 10000
+        + Enemy2StreakCounterSingleSide
+        + Enemy2StreakCounterDoubleSide * 2) 
+        return total_score
+
+    def __horizontal_streak(self):
+        boardCopy = copy.deepcopy(self.board.board)
+        return self.__counter(boardCopy)
+
+    def __vertical_streak(self):
+        boardCopy = [[0 for i in range(self.board.row)] for j in range(self.board.col)]
+        for i in range(self.board.col):
+            for j in range(self.board.row):
+                boardCopy[i][j] = copy.deepcopy(self.board.board[j][i])
+        return self.__counter(boardCopy)
+
+   # def count_streak(board: Board):
+    def __diagonalRTL_streak(self):
+        # Diagonalisasi Board
+        boardCopy =  [[] for i in range(self.board.col + self.board.row - 1)]
+        for i in range(self.board.row):
+            for j in range(self.board.col):
+                boardCopy[i+j].append(copy.deepcopy(self.board.board[i][j]))
+        return self.__counter(boardCopy)
+      
+    def __diagonalLTR_streak(self):
+        # Diagonalisasi Board
+        boardCopy =  [[] for i in range(self.board.col + self.board.row - 1)]
+        for i in range(self.board.col):
+            for j in range(self.board.row):
+                boardCopy[i+j].append(copy.deepcopy(self.board.board[j][i]))
+        return self.__counter(boardCopy)
+
+class LSBotGroup20:
 
     ''' Constructor '''
     def __init__(self, state: State, n_player: int, thinking_time: float):
@@ -83,28 +335,21 @@ class LSBot:
         T = self.__get_temperature()
 
         # Hitung nilai heuristik board saat ini
-        # print("---------------------CURRENT HEURISTIC-------------------")
-
-        current_heuristic = Heuristic(board=self.state.board, player=self.state.players[self.n_player]).calculate_heuristic()
-
-        # print ("-------------GENERATE NEIGHBOR----------------")
+        current_heuristic = HeuristicGroup20(board=self.state.board, player=self.state.players[self.n_player], enemy=self.state.players[(self.n_player+1)%2]).calculate_heuristic()
 
         # Generate neighbors
         neighbors = self.__generate_neighbors()
-
-        # print ("-----------------------------")
 
         # Selama thinking time < 3.9 detik...
         while ((datetime.datetime.now() - start) < datetime.timedelta(seconds = self.thinking_time-0.1)):
 
             # neighbor tu dictionary dengan key: movement(col: int, shape: str) sama heuristic: float
-            neighbor = random.choice(neighbors) 
+            neighbor = random.choice(neighbors)
             
             # Jika nilai heuristik neighbor lebih bagus dari current, pergi ke neighbor.
             # Kalau tidak, bandingkan nilai heuristic / T dengan bilangan random r di mana 0 ≤ r ≤ 1.
             # Jika heuristic / T > r, pergi ke neighbor.
             if (neighbor["heuristic"] > current_heuristic) or (math.exp((neighbor["heuristic"] - current_heuristic) / T) > random.random()):
-                # print("Selected neighbor: ",neighbor['heuristic'])
                 return neighbor["movement"]
         
         # time limit exceeded
@@ -140,10 +385,11 @@ class LSBot:
                         current_board = copy.deepcopy(self.state.board)
 
                         current_player = copy.deepcopy(self.state.players[self.n_player])
+                        enemy_player = copy.deepcopy(self.state.players[(self.n_player+1)%2])
                         current_player.quota[shape] -= 1
                         # Taruh piece di board hasil deepcopy
-                        current_board.set_piece(row, col, Piece(shape, self.state.players[self.n_player].color))
-                        current_neighbor["heuristic"] = Heuristic(board = current_board, player = current_player).calculate_heuristic()
+                        current_board.set_piece((self.state.board.row - 1) - row, col, Piece(shape, self.state.players[self.n_player].color))
+                        current_neighbor["heuristic"] = HeuristicGroup20(board = current_board, player = current_player, enemy=enemy_player).calculate_heuristic()
 
                         neighbors.append(current_neighbor)
         return neighbors
@@ -156,14 +402,14 @@ class LSBot:
 
         return initial_temperature * (cooling_rate ** self.state.round)
 
-class LocalSearch:
+class LocalSearchGroup20:
     def __init__(self):
         pass
 
     def find(self, state: State, n_player: int, thinking_time: float) -> Tuple[str, str]:
         self.thinking_time = time() + thinking_time
  
-        local_search_bot = LSBot(state = state, n_player = n_player, thinking_time = self.thinking_time)
+        local_search_bot = LSBotGroup20(state = state, n_player = n_player, thinking_time = self.thinking_time)
         best_movement = local_search_bot.local_search() #local search algorithm
 
         return best_movement

@@ -388,231 +388,10 @@ class Minimax:
             for j in range( state.board.col):
                 boardCopy[i+j].append(state.board.board[i][j])
 
-        # Inisialisasi Counter
-        Player3StreakCounterSingleSide = 0
-        Player3StreakCounterDoubleSide = 0
-        Player2StreakCounterSingleSide = 0
-        Player2StreakCounterDoubleSide = 0
-
-        Enemy3StreakCounterSingleSide = 0
-        Enemy3StreakCounterDoubleSide = 0
-        Enemy2StreakCounterSingleSide = 0
-        Enemy2StreakCounterDoubleSide = 0
-
-        #Counting
-        for i in range(len(boardCopy)):
-            j=0
-            while j < len(boardCopy[i]):
-                # While Blank
-                if boardCopy[i][j].shape == ShapeConstant.BLANK:
-                    while boardCopy[i][j].shape == ShapeConstant.BLANK:
-                        j +=1
-                        if j >= len(boardCopy[i]):
-                            break
-
-                # if J over Board
-                elif j >= len(boardCopy[i]):
-                        break  
-
-                # Player Shape Counter
-                elif boardCopy[i][j].shape == state.players[n_player].shape and state.players[n_player].quota[state.players[n_player].shape] > 0  :
-                    StartPointer = j
-                    Counter = 0
-                    
-                    while boardCopy[i][j].shape == state.players[n_player].shape   :
-                        j += 1 
-                        Counter += 1
-                        if j >= len(boardCopy[i]):
-                            break   
-                    
-                    if Counter == 2 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Player2StreakCounterDoubleSide += 1
-                            else :
-                                Player2StreakCounterSingleSide += 1
-
-                    elif Counter == 3 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Player3StreakCounterDoubleSide += 1
-                            else :
-                                Player3StreakCounterSingleSide += 1
-                                        
-                # Enemy Shape
-                elif boardCopy[i][j].shape == state.players[(n_player+1)%2].shape and state.players[(n_player+1)%2].quota[state.players[(n_player+1)%2].shape] > 0  :
-                    StartPointer = j
-                    Counter = 0
-                    while boardCopy[i][j].shape == state.players[(n_player+1)%2].shape   :
-                        j += 1 
-                        Counter += 1
-                        if j >= len(boardCopy[i]):
-                            break   
-
-                    if Counter == 2 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Enemy2StreakCounterDoubleSide += 1
-                            else :
-                                Enemy2StreakCounterSingleSide += 1
-
-                    elif Counter == 3 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Enemy3StreakCounterDoubleSide += 1
-                            else :
-                                Enemy3StreakCounterSingleSide += 1
-                                
-                else:
-                    j += 1
-               
-               
-         # Counting Colors
-        for i in range(len(boardCopy)):
-            j=0
-            while j < len(boardCopy[i]):
-                # While Blank
-                if boardCopy[i][j].shape == ShapeConstant.BLANK:
-                    while boardCopy[i][j].shape == ShapeConstant.BLANK:
-                        j +=1
-                        if j >= len(boardCopy[i]):
-                            break
-
-                # if j overboard        
-                elif j >= len(boardCopy[i]):
-                        break   
-               
-                # Player Color Counter  
-                elif boardCopy[i][j].color==state.players[n_player].color:
-                    StartPointer = j
-                    Counter = 0
-                    while boardCopy[i][j].color==state.players[n_player].color  :
-                        j += 1 
-                        Counter += 1
-                        if j >= len(boardCopy[i]):
-                            break   
-
-                    if Counter == 2 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Player2StreakCounterDoubleSide += 1
-                            else :
-                                Player2StreakCounterSingleSide += 1
-
-                    elif Counter == 3 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Player3StreakCounterDoubleSide += 1
-                            else :
-                                Player3StreakCounterSingleSide += 1
-                
-
-                # Enemy Color   
-                elif boardCopy[i][j].color==state.players[(n_player+1)%2].color:
-                    StartPointer = j
-                    Counter = 0
-                    while boardCopy[i][j].color==state.players[(n_player+1)%2].color  :
-                        j += 1 
-                        Counter += 1
-                        if j >= len(boardCopy[i]):
-                            break   
-
-                    if Counter == 2 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Enemy2StreakCounterDoubleSide += 1
-                            else :
-                                Enemy2StreakCounterSingleSide += 1
-
-                    elif Counter == 3 :
-                        isHeadBlank = False
-                        if StartPointer - 1 >0:
-                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
-                                isHeadBlank = True
-                        isTailBlank = False
-                        if j + 1 < len(boardCopy[i]) :
-                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
-                                isTailBlank = True
-                        if isHeadBlank or isTailBlank :
-                            if isHeadBlank and isTailBlank :
-                                Enemy3StreakCounterDoubleSide += 1
-                            else :
-                                Enemy3StreakCounterSingleSide += 1
-                else:
-                    j += 1
-    
-       
+        return self.counter(state, n_player,boardCopy)
         
-        total_score = (Player3StreakCounterSingleSide * 3
-        + Player3StreakCounterDoubleSide * 999999
-        + Player2StreakCounterSingleSide 
-        + Player2StreakCounterDoubleSide * 2) 
-        - (Enemy3StreakCounterSingleSide * 3
-        + Enemy3StreakCounterDoubleSide * 999999
-        + Enemy2StreakCounterSingleSide 
-        + Enemy2StreakCounterDoubleSide * 2) 
-        return total_score
-        
-
-     
    
-        
+      
     def diagonalLTR_Streak(self,state:State,n_player:int):
         # Diagonalisasi Board
         boardCopy =  [[] for i in range(state.board.col + state.board.row - 1)]
@@ -620,6 +399,10 @@ class Minimax:
             for j in range( state.board.row):
                 boardCopy[i+j].append(state.board.board[j][i])
 
+        return self.counter(state, n_player,boardCopy)
+        
+
+    def counter(self,state:State, n_player:int,boardCopy):
         # Inisialisasi Counter
         Player3StreakCounterSingleSide = 0
         Player3StreakCounterDoubleSide = 0
@@ -631,7 +414,6 @@ class Minimax:
         Enemy2StreakCounterSingleSide = 0
         Enemy2StreakCounterDoubleSide = 0
 
-        
         # Counting Shape
         for i in range(len(boardCopy)):
             j=0
@@ -731,8 +513,7 @@ class Minimax:
                 else:
                     j += 1
                
-               
-         # Counting Colors
+        # Counting Colors
         for i in range(len(boardCopy)):
             j=0
             while j < len(boardCopy[i]):
@@ -831,17 +612,14 @@ class Minimax:
                     j += 1
         
         total_score = (Player3StreakCounterSingleSide * 3
-        + Player3StreakCounterDoubleSide * 999999
+        + Player3StreakCounterDoubleSide * 10000
         + Player2StreakCounterSingleSide 
         + Player2StreakCounterDoubleSide * 2) 
         - (Enemy3StreakCounterSingleSide * 3
-        + Enemy3StreakCounterDoubleSide * 999999
+        + Enemy3StreakCounterDoubleSide * 10000
         + Enemy2StreakCounterSingleSide
         + Enemy2StreakCounterDoubleSide * 2) 
         return total_score
-        
-
-     
 
 
       

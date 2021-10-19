@@ -1,5 +1,6 @@
 import pickle
 from time import time
+from src.ai import LocalSearch
 
 from src.ai import Minimax
 from src.model import Board, Player, State, Config

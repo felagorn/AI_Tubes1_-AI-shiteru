@@ -289,43 +289,43 @@ class Minimax:
     def eval(self, state: State, n_player:int):
         return self.vertical_sreak(state, n_player) + self.horizontal_streak(state, n_player) + self.diagonalLTR_Streak(state, n_player) + self.diagonalRTL_Streak(state, n_player)
 
-    def minimax(self, state: State, init_player: int, n_player: int, thinking_time: float, init_time:float, depth: int, isMax: bool,alpha:int,beta:int, prior_move):
+    def minimax(self, state: State, init_player: int, n_player: int, thinking_time: float, init_time:float, depth: int, isMax: bool,alpha:int,beta:int):
         score = self.eval(state,n_player)
 
         # Basis
         if time() >= init_time + thinking_time - 0.5:
             if is_full(state.board):  # If terminal
                 # return format dictionary{"move": prior_move, "val": int}
-                return {"move": prior_move, "val": 0}
+                return {"move": ("col","shape"), "val": 0}
 
             winner = is_win(state.board)
             if winner:  
                 if winner[0] ==  state.players[init_player].shape and winner[1] ==  state.players[init_player].color:
-                    return {"move": prior_move, "val": 999999}
+                    return {"move":  None, "val": 999999}
                 else :
-                    return {"move": prior_move, "val": -999999}
+                    return {"move":  None, "val": -999999}
             else :
-                return {"move": prior_move, "val": score}
+                return {"move":  None, "val": score}
         else:
             if is_full(state.board):  # If terminal
                 # return format dictionary{"move": prior_move, "val": int}
-                return {"move": prior_move, "val": 0}
+                return {"move":  None, "val": 0}
 
             winner = is_win(state.board)
             if depth == 0 or winner:  # If leaf node
                 # return format dictionary{"move": prior_move, "val": int}
                 if winner:  
                     if winner[0] ==  state.players[init_player].shape and winner[1] ==  state.players[init_player].color:
-                        return {"move": prior_move, "val": 999999}
+                        return {"move":  None, "val": 999999}
                     else :
-                        return {"move": prior_move, "val": -999999}
+                        return {"move":  None, "val": -999999}
                 else :
-                    return {"move": prior_move, "val": score}
+                    return {"move":  None, "val": score}
         
 
             # Recursion
             if (isMax):  # Maximizer
-                best = {"move": prior_move, "val": -999999}
+                best = {"move":  (random.randint(0, state.board.col-1), random.choice([ShapeConstant.CROSS, ShapeConstant.CIRCLE])), "val": -999999}
 
                 # traverse movement
                 for i in range(state.board.col*2):
@@ -346,12 +346,12 @@ class Minimax:
                                 # Recursive call
                                 alt = self.minimax(state, init_player, (n_player+1) % 2,
                                                 thinking_time,init_time, depth - 1,
-                                                not isMax, alpha,beta, (i, ShapeConstant.CROSS))
+                                                not isMax, alpha,beta)
                                 if alt["val"] > best["val"]:
                                     best["val"] = alt["val"]
                                     best["move"] = (i, ShapeConstant.CROSS)
 
-                                #print(best["val"], ": ", best["move"])
+                                
                                 # Erase Move
                                 state.players[n_player].quota[ShapeConstant.CROSS] += 1
 
@@ -384,13 +384,13 @@ class Minimax:
                                 # Recursive call
                                 alt = self.minimax(state, init_player, (n_player+1) % 2,
                                                 thinking_time,init_time, depth - 1,
-                                                not isMax,alpha,beta,(i % state.board.col, ShapeConstant.CIRCLE))
+                                                not isMax,alpha,beta)
                                 if alt["val"] > best["val"]:
                                     best["val"] = alt["val"]
                                     best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
 
                                 # Erase Move
-                                #print(best["val"], ": ", best["move"])
+                                
                                 state.players[n_player].quota[ShapeConstant.CIRCLE] += 1
 
                                 blankPiece = Piece(
@@ -408,7 +408,7 @@ class Minimax:
                 
                 return best 
             else:  # Minimizer
-                best = {"move": prior_move, "val": 999999}
+                best = {"move":  (random.randint(0, state.board.col-1), random.choice([ShapeConstant.CROSS, ShapeConstant.CIRCLE])), "val": 999999}
                 # traverse movement
                 for i in range(state.board.col * 2):
                     emptyRow = self.findBlankRow(state,i % state.board.col)
@@ -430,13 +430,13 @@ class Minimax:
                                 # Recursive call
                                 alt = self.minimax(state, init_player, (n_player+1) % 2,
                                                 thinking_time,init_time, depth - 1,
-                                                not isMax,alpha,beta, (i, ShapeConstant.CROSS))
+                                                not isMax,alpha,beta)
                                 if alt["val"] < best["val"]:
                                     best["val"] = alt["val"]
                                     best["move"] = (i, ShapeConstant.CROSS)
 
                                 # Erase Move
-                                #print(best["val"], ": ", best["move"])
+                                
                                 state.players[n_player].quota[ShapeConstant.CROSS] += 1
 
                                 blankPiece = Piece(
@@ -468,13 +468,12 @@ class Minimax:
                                 # Recursive call
                                 alt = self.minimax(state, init_player, (n_player+1) % 2,
                                                 thinking_time,init_time, depth - 1,
-                                                not isMax,alpha,beta,(i % state.board.col, ShapeConstant.CIRCLE))
+                                                not isMax,alpha,beta)
                                 if alt["val"] < best["val"]:
                                     best["val"] = alt["val"]
                                     best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
 
                                 # Erase Move
-                                #print(best["val"], ": ", best["move"])
                                 state.players[n_player].quota[ShapeConstant.CIRCLE] += 1
 
                                 blankPiece = Piece(
@@ -496,8 +495,6 @@ class Minimax:
     def find(self, state: State, n_player: int, thinking_time: float) -> Tuple[str, str]:
         time_start = time()
         
-        value = self.minimax(state, n_player, n_player, thinking_time, time_start, 3, True,-999999,999999, None)
-        best_movement = value["move"]  # minimax algorithm
-        print(value["val"])
-        print(value["move"])
+        value = self.minimax(state, n_player, n_player, thinking_time, time_start, 3, True,-999999,999999)
+        best_movement = value["move"]  
         return best_movement

@@ -1,8 +1,8 @@
 import random
 from time import time
-from model.board import Board
-from model.config import Config
-from model.piece import Piece
+from src.model.board import Board
+from src.model.config import Config
+from src.model.piece import Piece
 
 from src.constant import ShapeConstant, ColorConstant, GameConstant
 from src.model import State
@@ -26,7 +26,7 @@ class Minimax:
 
     def findBlankRow(self, state: State, col: int):
         for row in range(state.board.row - 1, -1, -1):
-            if state.board[row, col].shape == ShapeConstant.BLANK:
+            if state.board.board[row][col].shape == ShapeConstant.BLANK:
                 return row
 
         return -1
@@ -380,25 +380,447 @@ class Minimax:
 
 
 
-    def count_streak(board: Board):
+   # def count_streak(board: Board):
+    def diagonalRTL_Streak(self,state:State,n_player:int):
+        # Diagonalisasi Board
+        boardCopy =  [[] for i in range(state.board.col + state.board.row - 1)]
+        for i in range(state.board.row):
+            for j in range( state.board.col):
+                boardCopy[i+j].append(state.board.board[i][j])
 
-    
+        # Inisialisasi Counter
+        Player3StreakCounterSingleSide = 0
+        Player3StreakCounterDoubleSide = 0
+        Player2StreakCounterSingleSide = 0
+        Player2StreakCounterDoubleSide = 0
+
+        Enemy3StreakCounterSingleSide = 0
+        Enemy3StreakCounterDoubleSide = 0
+        Enemy2StreakCounterSingleSide = 0
+        Enemy2StreakCounterDoubleSide = 0
+
+        
+        # Counting
+        for i in range(len(boardCopy)):
+            j=0
+            while j < len(boardCopy[i]):
+                # While Blank
+                if boardCopy[i][j].shape == ShapeConstant.BLANK:
+                    while boardCopy[i][j].shape == ShapeConstant.BLANK:
+                        j +=1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                if j >= len(boardCopy[i]):
+                    break 
+
+                # Player Shape Counter
+                if boardCopy[i][j].shape == state.players[n_player].shape and state.players[n_player].quota[state.players[n_player].shape] > 0  :
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].shape == state.players[n_player].shape   :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+                        
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player2StreakCounterDoubleSide += 1
+                            else :
+                                Player2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player3StreakCounterDoubleSide += 1
+                            else :
+                                Player3StreakCounterSingleSide += 1
+                        
+                if j >= len(boardCopy[i]):
+                    break 
+
+                # Player Color Counter  
+                if boardCopy[i][j].color==state.players[n_player].color:
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].color==state.players[n_player].color  :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player2StreakCounterDoubleSide += 1
+                            else :
+                                Player2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player3StreakCounterDoubleSide += 1
+                            else :
+                                Player3StreakCounterSingleSide += 1
+                if j >= len(boardCopy[i]):
+                    break 
+                # Enemy Shape
+                if boardCopy[i][j].shape == state.players[(n_player+1)%2].shape and state.players[(n_player+1)%2].quota[state.players[(n_player+1)%2].shape] > 0  :
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].shape == state.players[(n_player+1)%2].shape   :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy2StreakCounterDoubleSide += 1
+                            else :
+                                Enemy2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy3StreakCounterDoubleSide += 1
+                            else :
+                                Enemy3StreakCounterSingleSide += 1
+                        
+                if j >= len(boardCopy[i]):
+                    break 
+                # Enemy Color   
+                if boardCopy[i][j].color==state.players[(n_player+1)%2].color:
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].color==state.players[(n_player+1)%2].color  :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy2StreakCounterDoubleSide += 1
+                            else :
+                                Enemy2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy3StreakCounterDoubleSide += 1
+                            else :
+                                Enemy3StreakCounterSingleSide += 1
+        
+        total_score = (Player3StreakCounterSingleSide * 3
+        + Player3StreakCounterDoubleSide * 999999
+        + Player2StreakCounterSingleSide 
+        + Player2StreakCounterDoubleSide * 2) 
+        - (Enemy3StreakCounterSingleSide * 3
+        + Enemy3StreakCounterDoubleSide * 999999
+        + Enemy2StreakCounterSingleSide 
+        + Enemy2StreakCounterDoubleSide * 2) 
+        return total_score
         
 
-    def eval(self, state: State, n_player:int):
-        return self.horizontal_streak(state)+self.vertical_streak(state)
+     
+   
+        
+    def diagonalLTR_Streak(self,state:State,n_player:int):
+        # Diagonalisasi Board
+        boardCopy =  [[] for i in range(state.board.col + state.board.row - 1)]
+        for i in range(state.board.col):
+            for j in range( state.board.row):
+                boardCopy[i+j].append(state.board.board[j][i])
 
-    def minimax(self, state: State, n_player: int, thinking_time: float, depth: int, isMax: bool,alpha:int,beta:int):
-        score = eval(state)
+        # Inisialisasi Counter
+        Player3StreakCounterSingleSide = 0
+        Player3StreakCounterDoubleSide = 0
+        Player2StreakCounterSingleSide = 0
+        Player2StreakCounterDoubleSide = 0
+
+        Enemy3StreakCounterSingleSide = 0
+        Enemy3StreakCounterDoubleSide = 0
+        Enemy2StreakCounterSingleSide = 0
+        Enemy2StreakCounterDoubleSide = 0
+
+        
+        # Counting
+        for i in range(len(boardCopy)):
+            j=0
+            while j < len(boardCopy[i]):
+                # While Blank
+                if boardCopy[i][j].shape == ShapeConstant.BLANK:
+                    while boardCopy[i][j].shape == ShapeConstant.BLANK:
+                        j +=1
+                        if j >= len(boardCopy[i]):
+                            break
+                if j >= len(boardCopy[i]):
+                        break   
+                # Player Shape Counter
+                if boardCopy[i][j].shape == state.players[n_player].shape and state.players[n_player].quota[state.players[n_player].shape] > 0  :
+                    StartPointer = j
+                    Counter = 0
+                    
+                    while boardCopy[i][j].shape == state.players[n_player].shape   :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+                    
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player2StreakCounterDoubleSide += 1
+                            else :
+                                Player2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player3StreakCounterDoubleSide += 1
+                            else :
+                                Player3StreakCounterSingleSide += 1
+                        
+                if j >= len(boardCopy[i]):
+                    break 
+                # Player Color Counter  
+                if boardCopy[i][j].color==state.players[n_player].color:
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].color==state.players[n_player].color  :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player2StreakCounterDoubleSide += 1
+                            else :
+                                Player2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Player3StreakCounterDoubleSide += 1
+                            else :
+                                Player3StreakCounterSingleSide += 1
+                
+                if j >= len(boardCopy[i]):
+                    break 
+                # Enemy Shape
+                if boardCopy[i][j].shape == state.players[(n_player+1)%2].shape and state.players[(n_player+1)%2].quota[state.players[(n_player+1)%2].shape] > 0  :
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].shape == state.players[(n_player+1)%2].shape   :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy2StreakCounterDoubleSide += 1
+                            else :
+                                Enemy2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy3StreakCounterDoubleSide += 1
+                            else :
+                                Enemy3StreakCounterSingleSide += 1
+                        
+                if j >= len(boardCopy[i]):
+                    break 
+                # Enemy Color   
+                if boardCopy[i][j].color==state.players[(n_player+1)%2].color:
+                    StartPointer = j
+                    Counter = 0
+                    while boardCopy[i][j].color==state.players[(n_player+1)%2].color  :
+                        j += 1 
+                        Counter += 1
+                        if j >= len(boardCopy[i]):
+                            break   
+
+                    if Counter == 2 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy2StreakCounterDoubleSide += 1
+                            else :
+                                Enemy2StreakCounterSingleSide += 1
+
+                    elif Counter == 3 :
+                        isHeadBlank = False
+                        if StartPointer - 1 >0:
+                            if boardCopy[i][StartPointer-1].shape == ShapeConstant.BLANK:
+                                isHeadBlank = True
+                        isTailBlank = False
+                        if j + 1 < len(boardCopy[i]) :
+                            if boardCopy[i][j + 1].shape == ShapeConstant.BLANK:
+                                isTailBlank = True
+                        if isHeadBlank or isTailBlank :
+                            if isHeadBlank and isTailBlank :
+                                Enemy3StreakCounterDoubleSide += 1
+                            else :
+                                Enemy3StreakCounterSingleSide += 1
+        
+        total_score = (Player3StreakCounterSingleSide * 3
+        + Player3StreakCounterDoubleSide * 999999
+        + Player2StreakCounterSingleSide 
+        + Player2StreakCounterDoubleSide * 2) 
+        - (Enemy3StreakCounterSingleSide * 3
+        + Enemy3StreakCounterDoubleSide * 999999
+        + Enemy2StreakCounterSingleSide
+        + Enemy2StreakCounterDoubleSide * 2) 
+        return total_score
+        
+
+     
+
+
+      
+
+    def eval(self, state: State, n_player:int):
+        return self.diagonalLTR_Streak(state, n_player) + self.diagonalRTL_Streak(state, n_player)
+
+    def minimax(self, state: State, n_player: int, thinking_time: float, init_time:float, depth: int, isMax: bool,alpha:int,beta:int):
+        score = self.eval(state,n_player)
 
         # Basis
-        if is_full(state.board):  # If terminal
-            # return format dictionary{"move": ("col", "shape"), "val": int}
-            return {"move": ("col", "shape"), "val": 0}
+        if time() >= init_time + thinking_time - 0.5:
+            if is_full(state.board):  # If terminal
+                # return format dictionary{"move": ("col", "shape"), "val": int}
+                return {"move": ("col", "shape"), "val": 0}
 
-        winner = is_win(state.board)
-        if depth == 0 or winner:  # If leaf node
-            # return format dictionary{"move": ("col", "shape"), "val": int}
+            winner = is_win(state.board)
             if winner:  
                 if winner[0] ==  state.players[n_player].shape and winner[1] ==  state.players[n_player].color:
                     return {"move": ("col", "shape"), "val": 999999}
@@ -406,157 +828,194 @@ class Minimax:
                     return {"move": ("col", "shape"), "val": -999999}
             else :
                 return {"move": ("col", "shape"), "val": score}
+        else:
+            if is_full(state.board):  # If terminal
+                # return format dictionary{"move": ("col", "shape"), "val": int}
+                return {"move": ("col", "shape"), "val": 0}
 
+            winner = is_win(state.board)
+            if depth == 0 or winner:  # If leaf node
+                # return format dictionary{"move": ("col", "shape"), "val": int}
+                if winner:  
+                    if winner[0] ==  state.players[n_player].shape and winner[1] ==  state.players[n_player].color:
+                        return {"move": ("col", "shape"), "val": 999999}
+                    else :
+                        return {"move": ("col", "shape"), "val": -999999}
+                else :
+                    return {"move": ("col", "shape"), "val": score}
         
 
-        # Recursion
-        if (isMax):  # Maximizer
-            best = {"move": ("col", "shape"), "val": -999999}
+            # Recursion
+            if (isMax):  # Maximizer
+                best = {"move": ("col", "shape"), "val": -999999}
 
-            # traverse movement
-            for i in range(state.board.col*2):
+                # traverse movement
+                for i in range(state.board.col*2):
+                    
+                    emptyRow = self.findBlankRow(state,i % state.board.col)
+                    if emptyRow != -1:
+                        if i <state.board.col:  # Cross Shape
+                            if state.players[n_player].quota[ShapeConstant.CROSS] != 0:
+                                # Make the move
+                                piece = Piece(
+                                    ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[n_player])
+                                
+                                state.board.set_piece(
+                                    emptyRow, i, piece)
+
+                                state.players[n_player].quota[ShapeConstant.CROSS] -= 1
+                                
+                                # Recursive call
+                                alt = self.minimax(state, (n_player+1) % 2,
+                                                thinking_time,init_time, depth - 1,
+                                                not isMax, alpha,beta)
+                                if alt["val"] > best["val"]:
+                                    best["val"] = alt["val"]
+                                    best["move"] = (i, ShapeConstant.CROSS)
+
+                                # Erase Move
+                                state.players[n_player].quota[ShapeConstant.CROSS] += 1
+
+                                blankPiece = Piece(
+                                    ShapeConstant.BLANK, ColorConstant.BLACK)
+                                state.board.set_piece(
+                                    emptyRow, i % state.board.col, blankPiece)
+
+                                
+
+                                alpha = max(alpha, best["val"])
+                                if alpha >= beta:
+                                    break
+
+                                
+                               
+
+                        else:  # Circle Shape
+                            if state.players[n_player].quota[ShapeConstant.CIRCLE] != 0:
+                                # Make the move
+                                piece = Piece(
+                                    ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[n_player])
+
+                            
+                                state.board.set_piece(
+                                    emptyRow, i % state.board.col, piece)
+
+                                state.players[n_player].quota[ShapeConstant.CIRCLE] -= 1
+                                
+                                # Recursive call
+                                alt = self.minimax(state, (n_player+1) % 2,
+                                                thinking_time,init_time, depth - 1,
+                                                not isMax,alpha,beta)
+                                if alt["val"] > best["val"]:
+                                    best["val"] = alt["val"]
+                                    best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
+
+                                # Erase Move
+                                state.players[n_player].quota[ShapeConstant.CIRCLE] += 1
+
+                                blankPiece = Piece(
+                                    ShapeConstant.BLANK, ColorConstant.BLACK)
+                                state.board.set_piece(
+                                    emptyRow, i % state.board.col, blankPiece)
+
+                                
+
+                                alpha = max(alpha, best["val"])
+                                if alpha >= beta:
+                                    break
+
+                                
                 
-                emptyRow = findBlankRow(i)
-                if emptyRow(i) != -1:
-                    if i <state.board.col:  # Cross Shape
-                        if state.players[n_player].quota[ShapeConstant.CROSS] != 0:
-                            # Make the move
-                            piece = Piece(
-                                ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[n_player])
-                            
-                            state.board.set_piece(
-                                emptyRow, i, piece)
+                return best 
+            else:  # Minimizer
+                best = {"move": ("col", "shape"), "val": 999999}
+                # traverse movement
+                for i in range(state.board.col * 2):
+                    emptyRow = self.findBlankRow(state,i % state.board.col)
+                    if emptyRow != -1:
+                        if i <state.board.col:  # Cross Shape
+                            if state.players[n_player].quota[ShapeConstant.CROSS] != 0:
+                                # Make the move
+                                piece = Piece(
+                                    ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[n_player])
 
-                            state.players[n_player].quota[shape] -= 1
+                                
+                                state.board.set_piece(
+                                    emptyRow, i, piece)
 
-                            # Recursive call
-                            alt = minimax(state, (n_player+1) % 2,
-                                            thinking_time, depth - 1,
-                                            not isMax, alpha,beta)
-                            if alt["val"] > best["val"]:
-                                best["val"] = alt["val"]
-                                best["move"] = (i, ShapeConstant.CROSS)
+                                state.players[n_player].quota[ShapeConstant.CROSS] -= 1
 
-                            alpha = max(alpha, best["val"])
-                            if alpha >= beta:
-                                break
+                                
 
-                            # Erase Move
-                            state.players[n_player].quota[shape] += 1
+                                # Recursive call
+                                alt = self.minimax(state, (n_player+1) % 2,
+                                                thinking_time,init_time, depth - 1,
+                                                not isMax,alpha,beta)
+                                if alt["val"] < best["val"]:
+                                    best["val"] = alt["val"]
+                                    best["move"] = (i, ShapeConstant.CROSS)
 
-                            blankPiece = Piece(
-                                ShapeConstant.BLANK, ColorConstant.BLACK)
-                            state.board.set_piece(
-                                emptyRow, i, blankPiece)
+                                # Erase Move
+                                state.players[n_player].quota[ShapeConstant.CROSS] += 1
 
-                    else:  # Circle Shape
-                        if state.players[n_player].quota[ShapeConstant.CIRCLE] != 0:
-                            # Make the move
-                            piece = Piece(
-                                ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[n_player])
+                                blankPiece = Piece(
+                                    ShapeConstant.BLANK, ColorConstant.BLACK)
+                                state.board.set_piece(
+                                    emptyRow, i % state.board.col, blankPiece)
 
-                        
-                            state.board.set_piece(
-                                emptyRow, i % state.board.col, piece)
+                                
 
-                            state.players[n_player].quota[shape] -= 1
+                                beta = min(beta, best["val"])
+                                if alpha >= beta:
+                                    break
+                                
 
-                            # Recursive call
-                            alt = minimax(state, (n_player+1) % 2,
-                                            thinking_time, depth - 1,
-                                            not isMax,alpha,beta)
-                            if alt["val"] > best["val"]:
-                                best["val"] = alt["val"]
-                                best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
+                        else:  # Circle Shape
+                            if state.players[n_player].quota[ShapeConstant.CIRCLE] != 0:
+                                # Make the move
+                                piece = Piece(
+                                    ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[n_player])
 
-                            alpha = max(alpha, best["val"])
-                            if alpha >= beta:
-                                break
+                                
+                                state.board.set_piece(
+                                    emptyRow, i % state.board.col, piece)
 
-                            # Erase Move
-                            state.players[n_player].quota[shape] += 1
+                                state.players[n_player].quota[ShapeConstant.CIRCLE] -= 1
 
-                            blankPiece = Piece(
-                                ShapeConstant.BLANK, ColorConstant.BLACK)
-                            state.board.set_piece(
-                                emptyRow, i % state.board.col, blankPiece)
-            return best 
-        else:  # Minimizer
-            best = {move: ("col", "shape"), val: 999999}
-            # traverse movement
-            for i in range(state.board.col * 2):
-                emptyRow = findBlankRow(i)
-                if emptyRow != -1:
-                    if i <state.board.col:  # Cross Shape
-                        if state.players[(n_player+1) % 2].quota[ShapeConstant.CROSS] != 0:
-                            # Make the move
-                            piece = Piece(
-                                ShapeConstant.CROSS, GameConstant.PLAYER_COLOR[(n_player+1) % 2])
+                                
 
-                            
-                            state.board.set_piece(
-                                emptyRow, i, piece)
+                                # Recursive call
+                                alt = self.minimax(state, (n_player+1) % 2,
+                                                thinking_time,init_time, depth - 1,
+                                                not isMax,alpha,beta)
+                                if alt["val"] < best["val"]:
+                                    best["val"] = alt["val"]
+                                    best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
 
-                            state.players[(n_player+1) % 2].quota[shape] -= 1
+                                # Erase Move
+                                state.players[n_player].quota[ShapeConstant.CIRCLE] += 1
 
-                            # Recursive call
-                            alt = minimax(state, (n_player+1) % 2,
-                                            thinking_time, depth - 1,
-                                            not isMax,alpha,beta)
-                            if alt["val"] < best["val"]:
-                                best["val"] = alt["val"]
-                                best["move"] = (i, ShapeConstant.CROSS)
+                                blankPiece = Piece(
+                                    ShapeConstant.BLANK, ColorConstant.BLACK)
+                                state.board.set_piece(
+                                    emptyRow, i % state.board.col, blankPiece)
 
-                            beta = min(beta, best["val"])
-                            if alpha >= beta:
-                                break
-                            # Erase Move
-                            state.players[(n_player+1) % 2].quota[shape] += 1
+                                
+                                
+                                beta = min(beta, best["val"])
+                                if alpha >= beta:
+                                    break
 
-                            blankPiece = Piece(
-                                ShapeConstant.BLANK, ColorConstant.BLACK)
-                            state.board.set_piece(
-                                emptyRow, i, blankPiece)
-
-                    else:  # Circle Shape
-                        if state.players[(n_player+1) % 2].quota[ShapeConstant.CIRCLE] != 0:
-                            # Make the move
-                            piece = Piece(
-                                ShapeConstant.CIRCLE, GameConstant.PLAYER_COLOR[(n_player+1) % 2])
-
-                            
-                            state.board.set_piece(
-                                emptyRow, i % state.board.col, piece)
-
-                            state.players[(n_player+1) % 2].quota[shape] -= 1
-
-                            # Recursive call
-                            alt = minimax(state, (n_player+1) % 2,
-                                            thinking_time, depth - 1,
-                                            not isMax,alpha,beta)
-                            if alt["val"] < best["val"]:
-                                best["val"] = alt["val"]
-                                best["move"] = (i % state.board.col, ShapeConstant.CIRCLE)
-                            
-                            beta = min(beta, best["val"])
-                            if alpha >= beta:
-                                break
-
-                            # Erase Move
-                            state.players[(n_player+1) % 2].quota[shape] += 1
-
-                            blankPiece = Piece(
-                                ShapeConstant.BLANK, ColorConstant.BLACK)
-                            state.board.set_piece(
-                                emptyRow, i % state.board.col, blankPiece)
-
-            return best
+                                
+                
+                
+                return best
 
     def find(self, state: State, n_player: int, thinking_time: float) -> Tuple[str, str]:
-        self.thinking_time = time() + thinking_time
-
-        value = minimax(state, n_player, thinking_time, 5, True,-999999,999999)
-        best_movement = (random.randint(0, state.board.col), random.choice(
-            [ShapeConstant.CROSS, ShapeConstant.CIRCLE]))  # minimax algorithm
-
+        time_start = time()
+        
+        value = self.minimax(state, n_player, thinking_time, time_start,5, True,-999999,999999)
+        
+        best_movement = value["move"]  # minimax algorithm
+       
         return best_movement

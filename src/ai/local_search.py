@@ -2,7 +2,6 @@ from time import time
 from src.model import State, Board, Player, Piece
 from src.constant import ShapeConstant
 from src.model import State
-# from src.ai.bot import Bot
 from typing import Tuple, List
 import random
 import copy
@@ -15,65 +14,61 @@ import math
 # 3. Tidak lagi memakai best_movement
 # 4. Nama method diubah dari __local_search -> local_search
 
-class LSBot:
+class Heuristic:
 
-    ''' Constructor '''
-    def __init__(self, state: State, n_player: int, thinking_time: float): #, is_minimax: bool
-        self.state = state
-        self.n_player = n_player
-        self.thinking_time = thinking_time
-        # self.is_minimax = is_minimax
-    
+    def __init__(self, board: Board, player: Player):
+        self.board = board
+        self.player = player
+
     ''' Meng-output nilai fungsi objektif '''
-    def __calculate_heuristic(self, board: Board, player: Player, movement: Tuple[int, str] = (-1,'-'), ignore_movement: bool = False) -> float:
+    def calculate_heuristic(self) -> float:
         
-        h1 = self.__yellow_tile_heuristic(board)
-        h3 = self.__shape_heuristic(player)
-        print("h1 = "+ str(h1))
-        print("h3 = " + str(h3))
+        h1 = self.__yellow_tile_heuristic()
+        h3 = self.__shape_heuristic()
+        # print("h1 = "+ str(h1))
+        # print("h3 = " + str(h3))
         return h1 + h3
 
     ''' Heuristik 1: Yellow Tile '''
-    def __yellow_tile_heuristic(self, board: Board):
+    def __yellow_tile_heuristic(self):
+        # Heuristik kecil yang mendefinisikan tile yang lebih dominan
         h1 = 0
         c1 = 1
-        player_shape = self.state.players[self.n_player].shape
-        player_color = self.state.players[self.n_player].color
-        for r in range(board.row):
-            for c in range(board.col):
-                current_piece = board.__getitem__(pos=(r,c))
+        for r in range(self.board.row):
+            for c in range(self.board.col):
+                current_piece = self.board.__getitem__(pos=(r,c))
                 if  ((c == 3) or (r == 2) or (r == 3)) and (current_piece.shape != ShapeConstant.BLANK):
-                    if (current_piece.shape == player_shape):
-                        h1 += 1
+                    # Shape more dominant
+                    if (current_piece.shape == self.player.shape):
+                        h1 += 1.01
                     else:
-                        h1 -= 1
-                    if (current_piece.color == player_color):
+                        h1 -= 1.01
+                    # Color less dominant
+                    if (current_piece.color == self.player.color):
                         h1 += 1
                     else:
                         h1 -= 1
         return c1 * h1
 
     ''' Heuristik 3: Shape '''
-    def __shape_heuristic(self, player: Player):
+    def __shape_heuristic(self):
+        # Heuristik keciiiiil yang membuat bot tidak menyimpan bidak shape lawan 
         h3 = 0
         c3 = 0.5
-        for shape in player.quota:
-            if shape == player.shape:
-                h3 += player.quota[shape]
+        for shape in self.player.quota:
+            if shape == self.player.shape:
+                h3 += self.player.quota[shape]
             else:
-                h3 -= player.quota[shape]
+                h3 -= self.player.quota[shape]
         return c3 * h3
 
-    # ''' Fungsi yang dipanggil pada local_search.py dan minimax.py '''
-    # def best_movement(self):
-        # if self.is_minimax:
-            # return self.__minimax()
-        # else:
-            # return self.__local_search()
-    
-    # ''' Implementasikan algoritma minimax di sini '''
-    # def __minimax(self):
-        # pass
+class LSBot:
+
+    ''' Constructor '''
+    def __init__(self, state: State, n_player: int, thinking_time: float):
+        self.state = state
+        self.n_player = n_player
+        self.thinking_time = thinking_time
 
     ''' Implementasikan algoritma local search di sini '''
     def local_search(self):
@@ -88,15 +83,16 @@ class LSBot:
         T = self.__get_temperature()
 
         # Hitung nilai heuristik board saat ini
-        print("---------------------CURRENT HEURISTIC-------------------")
-        current_heuristic = self.__calculate_heuristic(board = self.state.board, player = self.state.players[self.n_player], ignore_movement = True)
+        # print("---------------------CURRENT HEURISTIC-------------------")
 
-        print ("-------------GENERATE NEIGHBOR----------------")
+        current_heuristic = Heuristic(board=self.state.board, player=self.state.players[self.n_player]).calculate_heuristic()
+
+        # print ("-------------GENERATE NEIGHBOR----------------")
 
         # Generate neighbors
         neighbors = self.__generate_neighbors()
 
-        print ("-----------------------------")
+        # print ("-----------------------------")
 
         # Selama thinking time < 3.9 detik...
         while ((datetime.datetime.now() - start) < datetime.timedelta(seconds = self.thinking_time-0.1)):
@@ -108,7 +104,7 @@ class LSBot:
             # Kalau tidak, bandingkan nilai heuristic / T dengan bilangan random r di mana 0 ≤ r ≤ 1.
             # Jika heuristic / T > r, pergi ke neighbor.
             if (neighbor["heuristic"] > current_heuristic) or (math.exp((neighbor["heuristic"] - current_heuristic) / T) > random.random()):
-                print("Selected neighbor: ",neighbor['heuristic'])
+                # print("Selected neighbor: ",neighbor['heuristic'])
                 return neighbor["movement"]
         
         # time limit exceeded
@@ -147,7 +143,8 @@ class LSBot:
                         current_player.quota[shape] -= 1
                         # Taruh piece di board hasil deepcopy
                         current_board.set_piece(row, col, Piece(shape, self.state.players[self.n_player].color))
-                        current_neighbor["heuristic"] = self.__calculate_heuristic(board=current_board, player=current_player, movement=(col, shape))
+                        current_neighbor["heuristic"] = Heuristic(board = current_board, player = current_player).calculate_heuristic()
+
                         neighbors.append(current_neighbor)
         return neighbors
 

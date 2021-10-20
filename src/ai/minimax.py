@@ -311,12 +311,7 @@ class Minimax:
         return c3 * h3
 
     def eval(self, state: State, n_player:int):
-        return self.vertical_streak(state, n_player) 
-        + self.horizontal_streak(state, n_player) 
-        + self.diagonalLTR_Streak(state, n_player) 
-        + self.diagonalRTL_Streak(state, n_player)
-        + self.__yellow_tile_heuristic(state, n_player)
-        + self.__shape_heuristic(state, n_player)
+        return self.vertical_streak(state, n_player) + self.horizontal_streak(state, n_player) + self.diagonalLTR_Streak(state, n_player) + self.diagonalRTL_Streak(state, n_player)+ self.__yellow_tile_heuristic(state, n_player)+ self.__shape_heuristic(state, n_player)
 
     def minimax(self, state: State, init_player: int, n_player: int, thinking_time: float, init_time:float, depth: int, isMax: bool,alpha:int,beta:int):
         score = self.eval(state,init_player)
@@ -524,6 +519,6 @@ class Minimax:
     def find(self, state: State, n_player: int, thinking_time: float) -> Tuple[str, str]:
         time_start = time()
         
-        value = self.minimax(state, n_player, n_player, thinking_time, time_start, 3, True,-999999,999999)
+        value = self.minimax(state, n_player, n_player, thinking_time, time_start, 4, True,-999999,999999)
         best_movement = value["move"]  
         return best_movement

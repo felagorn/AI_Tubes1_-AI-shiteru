@@ -322,7 +322,7 @@ class Minimax:
         score = self.eval(state,init_player)
         
         # Basis
-        if time() >= init_time + thinking_time - 0.5:
+        if time() >= init_time + thinking_time - 0.1:
             if is_full(state.board):  # If terminal
                 # return format dictionary{"move": prior_move, "val": int}
                 return {"move": ("col","shape"), "val": 0}

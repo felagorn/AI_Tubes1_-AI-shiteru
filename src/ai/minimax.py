@@ -10,7 +10,7 @@ from src.utility import is_out, is_win, is_full, place
 from typing import Tuple, List
 
 
-class Minimax:
+class MinimaxGroup20:
     def __init__(self):
         pass
 
@@ -267,14 +267,7 @@ class Minimax:
                 else:
                     j += 1
         
-        total_score = (Player3StreakCounterSingleSide * 3
-        + Player3StreakCounterDoubleSide * 10000
-        + Player2StreakCounterSingleSide 
-        + Player2StreakCounterDoubleSide * 2) 
-        - (Enemy3StreakCounterSingleSide * 3
-        + Enemy3StreakCounterDoubleSide * 10000
-        + Enemy2StreakCounterSingleSide
-        + Enemy2StreakCounterDoubleSide * 2) 
+        total_score = (Player3StreakCounterSingleSide * 3+ Player3StreakCounterDoubleSide * 10000+ Player2StreakCounterSingleSide + Player2StreakCounterDoubleSide * 2) - (Enemy3StreakCounterSingleSide * 3+ Enemy3StreakCounterDoubleSide * 10000+ Enemy2StreakCounterSingleSide + Enemy2StreakCounterDoubleSide * 2) 
         return total_score
     
     ''' Heuristik 1: Yellow Tile '''
@@ -519,6 +512,6 @@ class Minimax:
     def find(self, state: State, n_player: int, thinking_time: float) -> Tuple[str, str]:
         time_start = time()
         
-        value = self.minimax(state, n_player, n_player, thinking_time, time_start, 4, True,-999999,999999)
+        value = self.minimax(state, n_player, n_player, thinking_time, time_start, 3, True,-999999,999999)
         best_movement = value["move"]  
         return best_movement

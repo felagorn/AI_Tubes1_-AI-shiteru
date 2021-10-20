@@ -276,14 +276,7 @@ class HeuristicGroup20:
                 else:
                     j += 1
 
-        total_score = (Player3StreakCounterSingleSide * 3
-        + Player3StreakCounterDoubleSide * 10000
-        + Player2StreakCounterSingleSide 
-        + Player2StreakCounterDoubleSide * 2) 
-        - (Enemy3StreakCounterSingleSide * 3
-        + Enemy3StreakCounterDoubleSide * 10000
-        + Enemy2StreakCounterSingleSide
-        + Enemy2StreakCounterDoubleSide * 2) 
+        total_score = (Player3StreakCounterSingleSide * 3 + Player3StreakCounterDoubleSide * 10000 + Player2StreakCounterSingleSide + Player2StreakCounterDoubleSide * 2) - (Enemy3StreakCounterSingleSide * 3+ Enemy3StreakCounterDoubleSide * 10000+ Enemy2StreakCounterSingleSide+ Enemy2StreakCounterDoubleSide * 2) 
         return total_score
 
     def __horizontal_streak(self):
